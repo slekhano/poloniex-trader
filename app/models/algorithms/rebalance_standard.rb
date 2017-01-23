@@ -23,6 +23,7 @@ class Algorithms::RebalanceStandard
       raise name unless price != nil
     end
     holdings = currencies_to_track.map { |name| Holding.new(name)}
+    holdings_copy = currencies_to_track.map { |name| Holding.new(name)}
 
     # Show the stats
     bitcoin_price_at_start = Price.where(name: @starting_currency, timestamp: start_time).take.weighted_average
@@ -35,13 +36,18 @@ class Algorithms::RebalanceStandard
     holdings.each do |holding|
       buy(holding, bitcoin_per_holding, start_time)
     end
-    puts "\nPrepared the following portfolio"
+    # Make a backup to compare with doing no trading for the same period
+    holdings_copy.each do |holding|
+      buy(holding, bitcoin_per_holding, start_time)
+    end
+
+    puts "\nPrepared the following portfolio:"
     print_holdings(holdings, start_time)
 
     # Run the simulation
+    puts "Starting simulation (T means traded and _ means nothing happened):"
     current_time = start_time + frequency
     while current_time <= end_time do
-      print "."
       rebalance(holdings, current_time)
       current_time += frequency
     end
@@ -49,11 +55,15 @@ class Algorithms::RebalanceStandard
     puts
 
     # Show the results
+    puts "\nPortfolio at the end of the simulation:"
     print_holdings(holdings, end_time)
     bitcoin_price_at_end = Price.where(name: @starting_currency, timestamp: end_time).take.weighted_average
     usd_value_at_end = bitcoin_holdings_at_start * bitcoin_price_at_end
 
-    puts "Holding BTC for the same period would give you #{bitcoin_holdings_at_start.truncate(3)} BTC worth $#{usd_value_at_end.truncate(2)} at $#{bitcoin_price_at_end.truncate(3).to_s}/BTC"
+    btc_value_of_copy_portfolio = holdings_value_in_btc(holdings_copy, end_time)
+    usd_value_of_copy_portfolio = btc_value_of_copy_portfolio * bitcoin_price_at_end
+    puts "Holding the original portfolio and not trading would give you #{btc_value_of_copy_portfolio.truncate(3)} BTC worth $#{usd_value_of_copy_portfolio.truncate(2)}"
+    puts "Holding just BTC for the same period would give you #{bitcoin_holdings_at_start.truncate(3)} BTC worth $#{usd_value_at_end.truncate(2)} at $#{bitcoin_price_at_end.truncate(3).to_s}/BTC"
     puts "Simulation completed at #{end_time}"
   end
 
@@ -66,7 +76,7 @@ class Algorithms::RebalanceStandard
     # puts
 
     target_btc_per_holding = btc_value / holdings.count
-    target_btc_rebalance_threshhold = 0.01 # if we're off our target by 0.01 btc
+    target_btc_rebalance_threshhold = 0.1 # if we're out of whack by this much btc sell
     sell = {}
     buy = {}
     total_to_buy = 0.0
@@ -82,6 +92,7 @@ class Algorithms::RebalanceStandard
     end
 
     if sell.count > 0 && buy.count > 0
+      print "T"
       sell.each do |holding, quanity_in_btc_to_sell|
         @btc_leftover_balance += sell(holding, quanity_in_btc_to_sell, timestamp)
       end
@@ -105,6 +116,8 @@ class Algorithms::RebalanceStandard
       if @btc_leftover_balance > 0.01
         raise @btc_leftover_balance.to_s # should never be much leftover
       end
+    else
+      print "_"
     end
 
     # puts "After"
@@ -154,10 +167,10 @@ class Algorithms::RebalanceStandard
   def print_holdings(holdings, timestamp)
     holdings.each do |holding|
       holding_value_btc = holding.quantity * holding.price.weighted_average
-      puts "#{holding.name} #{holding.quantity.truncate(5).to_s} #{holding_value_btc.truncate(5)}BTC"
+      puts "#{holding.name} #{holding.quantity.truncate(5).to_s} #{holding_value_btc.truncate(5)} BTC"
     end
     holdings_value_btc = holdings_value_in_btc(holdings, timestamp)
     holdings_value_usd = Price.where(name: @starting_currency, timestamp: timestamp).take.weighted_average * holdings_value_btc
-    puts "TOTAL_BTC #{holdings_value_btc.truncate(4)} = $#{holdings_value_usd.truncate(2)}"
+    puts "TOTAL_BTC #{holdings_value_btc.truncate(4)} = $#{holdings_value_usd.truncate(2)}\n\n"
   end
 end
