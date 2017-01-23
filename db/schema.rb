@@ -13,18 +13,18 @@
 ActiveRecord::Schema.define(version: 20170123002821) do
 
   create_table "prices", force: :cascade, options: "ENGINE=InnoDB DEFAULT CHARSET=utf8" do |t|
-    t.string   "name",                           null: false
-    t.date     "date",                           null: false
-    t.decimal  "high",            precision: 10
-    t.decimal  "low",             precision: 10
-    t.decimal  "open",            precision: 10
-    t.decimal  "close",           precision: 10
-    t.decimal  "volume",          precision: 10
-    t.decimal  "quoteVolume",     precision: 10
-    t.decimal  "weightedAverage", precision: 10, null: false
-    t.datetime "created_at",                     null: false
-    t.datetime "updated_at",                     null: false
-    t.index ["date", "name"], name: "index_prices_on_date_and_name", unique: true, using: :btree
+    t.string   "name",                                       null: false
+    t.datetime "timestamp",                                  null: false
+    t.decimal  "high",             precision: 30, scale: 10
+    t.decimal  "low",              precision: 30, scale: 10
+    t.decimal  "open",             precision: 30, scale: 10
+    t.decimal  "close",            precision: 30, scale: 10
+    t.decimal  "volume",           precision: 30, scale: 10
+    t.decimal  "quote_volume",     precision: 30, scale: 10
+    t.decimal  "weighted_average", precision: 30, scale: 10, null: false
+    t.datetime "created_at",                                 null: false
+    t.datetime "updated_at",                                 null: false
+    t.index ["timestamp", "name"], name: "index_prices_on_timestamp_and_name", unique: true, using: :btree
   end
 
 end
