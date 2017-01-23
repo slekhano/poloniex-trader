@@ -2,7 +2,8 @@
 
 At the moment this rails project just grabs all historical data
 for the virtual currencies listed in price_updater.rb from Poloniex
-going back to the beginning of 2016. 
+going back to the beginning of 2016. It also includes a very basic 
+rebalancing simulation.
 
 It stores the data in the `price` table of the `trader_development` database.
   
@@ -11,6 +12,7 @@ To populate the database
 ```bash
 rake db:create
 rails runner "PriceUpdater.fetch_all"
+rails runner "Algorithms::RebalanceStandard.new.run"
 ```
 
 To do an incremental update to get any new data since the `PriceUpdater` last
