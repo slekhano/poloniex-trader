@@ -1,24 +1,18 @@
 # README
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+At the moment this rails project just grabs all historical data
+for the virtual currencies listed in price_updater.rb from Poloniex
+going back to the beginning of 2016. 
 
-Things you may want to cover:
+It stores the data in the `price` table of the `trader_development` database.
+  
+To populate the database
 
-* Ruby version
+```bash
+rake db:create
+rails runner "PriceUpdater.fetch_all"
+```
 
-* System dependencies
+To do an incremental update to get any new data since the `PriceUpdater` last
+ran just re-run `rails runner "PriceUpdater.fetch_all"`
 
-* Configuration
-
-* Database creation
-
-* Database initialization
-
-* How to run the test suite
-
-* Services (job queues, cache servers, search engines, etc.)
-
-* Deployment instructions
-
-* ...

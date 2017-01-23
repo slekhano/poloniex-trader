@@ -38,7 +38,7 @@ class PriceUpdater
         price.save!
         count += 1
       end
-      puts "#{count > 0 ? '\n' : ''}#{name}: Created #{count} records"
+      puts "#{count > 0 ? "\n" : ""}#{name}: Created #{count} records"
     else
       raise response.to_s
     end
