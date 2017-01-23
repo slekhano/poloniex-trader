@@ -3,17 +3,18 @@ class Algorithms::RebalanceStandard
   Holding = Struct.new(:name, :quantity, :price)
 
   def initialize
+    @btc_leftover_balance = 0.0
     @starting_currency = 'USDT_BTC'
     @trade_fee = 0.0025
   end
 
   def run
     frequency = 4.hours
-    start_time = Time.utc(2016, 9, 1)
+    start_time = Time.utc(2016, 7, 13)
     end_time = Price.where(name: @starting_currency).maximum(:timestamp)
     start_usd = 5000.00
 
-    currencies_to_track = ['BTC_POT', 'BTC_XRP', 'BTC_MAID', 'BTC_XMR', 'BTC_LTC',
+    currencies_to_track = ['BTC_XRP', 'BTC_MAID', 'BTC_XMR', 'BTC_LTC',
                            'BTC_LSK', 'BTC_ETH', 'BTC_DOGE', 'BTC_DASH', 'BTC_SC', 'BTC_FCT']
 
     # Verify we have data that goes that far back
@@ -22,7 +23,6 @@ class Algorithms::RebalanceStandard
       raise name unless price != nil
     end
     holdings = currencies_to_track.map { |name| Holding.new(name)}
-    #holdings = [Holding.new("BTC_POT"), Holding.new("BTC_LTC")]
 
     # Show the stats
     bitcoin_price_at_start = Price.where(name: @starting_currency, timestamp: start_time).take.weighted_average
@@ -60,45 +60,50 @@ class Algorithms::RebalanceStandard
   def rebalance(holdings, timestamp)
     btc_value = holdings_value_in_btc(holdings, timestamp)
 
-    #return
+    # return
     # puts "Before"
     # print_holdings(holdings, timestamp)
     # puts
 
     target_btc_per_holding = btc_value / holdings.count
-    # target_btc_rebalance_threshhold = 0.00 # if we're off our target by 0.01 btc
+    target_btc_rebalance_threshhold = 0.01 # if we're off our target by 0.01 btc
     sell = {}
     buy = {}
     total_to_buy = 0.0
-    total_to_sell = 0.0
     holdings.each do |holding|
       btc_of_holding = holding.quantity * holding.price.weighted_average
       over_target = btc_of_holding - target_btc_per_holding
-      if over_target > 0
+      if over_target > target_btc_rebalance_threshhold
         sell[holding] = over_target
-        total_to_buy += over_target
       elsif over_target < 0
         buy[holding] = -over_target
-        total_to_sell += -over_target
+        total_to_buy += -over_target
       end
     end
 
-    if total_to_sell > 0.01
-      btc_balance = 0.0
+    if sell.count > 0 && buy.count > 0
       sell.each do |holding, quanity_in_btc_to_sell|
-        btc_balance += sell(holding, quanity_in_btc_to_sell, timestamp)
+        @btc_leftover_balance += sell(holding, quanity_in_btc_to_sell, timestamp)
       end
+
+      # Since we may want to buy more than we sold we need a buy adjustment
+      buy_adjustment = @btc_leftover_balance.truncate(3) / total_to_buy.truncate(3)
 
       buy.each do |holding, quanity_in_btc_to_buy|
-        if quanity_in_btc_to_buy > btc_balance
-          quanity_in_btc_to_buy = btc_balance
+        quanity_in_btc_to_buy *= buy_adjustment
+        if quanity_in_btc_to_buy > @btc_leftover_balance
+          quanity_in_btc_to_buy = @btc_leftover_balance
         end
-        buy(holding, quanity_in_btc_to_buy, timestamp)
-        btc_balance -= quanity_in_btc_to_buy
+        if quanity_in_btc_to_buy > 0
+          buy(holding, quanity_in_btc_to_buy, timestamp)
+          @btc_leftover_balance -= quanity_in_btc_to_buy
+        end
       end
 
-      if btc_balance > 0
-        raise btc_balance.to_s # should never be > 0
+      @btc_leftover_balance = @btc_leftover_balance.truncate(4)
+
+      if @btc_leftover_balance > 0.01
+        raise @btc_leftover_balance.to_s # should never be much leftover
       end
     end
 
