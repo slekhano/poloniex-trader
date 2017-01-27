@@ -2,9 +2,7 @@ class PriceUpdater
 
   def self.fetch_all
     # See all currencies https://poloniex.com/public?command=returnTicker
-    currencies_to_track = ['BTC_POT', 'BTC_XRP', 'BTC_REP', 'BTC_MAID', 'BTC_XMR', 'BTC_ZEC', 'BTC_LTC',
-                           'BTC_LSK', 'BTC_ETH', 'BTC_DOGE', 'BTC_DASH', 'BTC_SC', 'BTC_FCT', 'USDT_BTC']
-    currencies_to_track.each do |name|
+    Portfolio.currencies_to_track.each do |name|
       fetch_and_update(name)
     end
   end

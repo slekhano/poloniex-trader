@@ -16,13 +16,23 @@ it.
 
 It stores the historical data in the `price` table of the `trader_development` database.
 
-To populate the database
+To setup the project
 
 ```bash
+bundle install
 rake db:create
-rails runner "PriceUpdater.fetch_all"
+rake db:migrate
+```
+
+To run the simulation
+
+```bash
+rails runner "PriceUpdater.fetch_all" # fetches historical data
 rails runner "Algorithms::RebalanceStandard.new.run"
 ```
+
+If you change the portfolio in `portfolio.rb ` you'll need to run `fetch_all` again before
+re-running the simulation.
 
 To do an incremental update to get any new data since the `PriceUpdater` last
 ran just re-run `rails runner "PriceUpdater.fetch_all"`

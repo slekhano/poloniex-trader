@@ -5,25 +5,23 @@ class Algorithms::RebalanceStandard
   def initialize
     @btc_leftover_balance = 0.0
     @starting_currency = 'USDT_BTC'
-    @trade_fee = 0.0025
+    @trade_taker_fee = 0.0025
+    @trade_maker_fee = 0.0015
+    @trade_frequency = 4.hours # We only have data for every 4 hours so must be 4,8,12,24,etc
   end
 
   def run
-    frequency = 4.hours # We only have data for every 4 hours so must be 4,8,12,24,etc
     start_time = Time.utc(2016, 7, 13)
     end_time = Price.where(name: @starting_currency).maximum(:timestamp)
     start_usd = 5000.00
 
-    currencies_to_track = ['BTC_XRP', 'BTC_MAID', 'BTC_XMR', 'BTC_LTC',
-                           'BTC_LSK', 'BTC_ETH', 'BTC_DOGE', 'BTC_DASH', 'BTC_SC', 'BTC_FCT']
-
     # Verify we have data that goes that far back
-    currencies_to_track.each do |name|
+    Portfolio.currencies_to_track.each do |name|
       price = Price.where(name: name, timestamp: start_time).take
-      raise name unless price != nil
+      raise "Don't have currency data going back to #{start_time} for #{name}" unless price != nil
     end
-    holdings = currencies_to_track.map { |name| Holding.new(name)}
-    holdings_copy = currencies_to_track.map { |name| Holding.new(name)}
+    holdings = Portfolio.currencies_to_track.map { |name| Holding.new(name)}
+    holdings_copy = Portfolio.currencies_to_track.map { |name| Holding.new(name)} # to track non-trading scenario for comparison
 
     # Show the stats
     bitcoin_price_at_start = Price.where(name: @starting_currency, timestamp: start_time).take.weighted_average
@@ -46,12 +44,12 @@ class Algorithms::RebalanceStandard
 
     # Run the simulation
     puts "Starting simulation (T means traded and _ means nothing happened):"
-    current_time = start_time + frequency
+    current_time = start_time + @trade_frequency
     while current_time <= end_time do
       rebalance(holdings, current_time)
-      current_time += frequency
+      current_time += @trade_frequency
     end
-    end_time = current_time - frequency
+    end_time = current_time - @trade_frequency
     puts
 
     # Show the results
@@ -133,7 +131,7 @@ class Algorithms::RebalanceStandard
     price_of_holding = holding.price.weighted_average
     quantity_to_sell = amount_of_btc / price_of_holding
     holding.quantity = holding.quantity - quantity_to_sell
-    quantity_sold_after_fees = quantity_to_sell - (quantity_to_sell * @trade_fee)
+    quantity_sold_after_fees = quantity_to_sell - (quantity_to_sell * @trade_maker_fee)
     btc_we_end_up_with_after_sale = quantity_sold_after_fees * price_of_holding
     btc_we_end_up_with_after_sale
   end
@@ -144,7 +142,7 @@ class Algorithms::RebalanceStandard
     end
     price_of_holding = holding.price.weighted_average
     quantity_to_buy = amount_of_btc / price_of_holding
-    fees = quantity_to_buy * @trade_fee
+    fees = quantity_to_buy * @trade_taker_fee
     if holding.quantity == nil
       holding.quantity = 0.0
     end
