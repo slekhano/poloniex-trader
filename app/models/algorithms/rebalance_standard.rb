@@ -8,6 +8,7 @@ class Algorithms::RebalanceStandard
     @trade_taker_fee = 0.0025
     @trade_maker_fee = 0.0015
     @trade_frequency = 4.hours # We only have data for every 4 hours so must be 4,8,12,24,etc
+    @btc_rebalance_threshhold = 0.1 # if a holding is over-allocated by this much harvest the gains
   end
 
   def run
@@ -74,14 +75,14 @@ class Algorithms::RebalanceStandard
     # puts
 
     target_btc_per_holding = btc_value / holdings.count
-    target_btc_rebalance_threshhold = 0.1 # if we're out of whack by this much btc sell
+
     sell = {}
     buy = {}
     total_to_buy = 0.0
     holdings.each do |holding|
       btc_of_holding = holding.quantity * holding.price.weighted_average
       over_target = btc_of_holding - target_btc_per_holding
-      if over_target > target_btc_rebalance_threshhold
+      if over_target > @btc_rebalance_threshhold
         sell[holding] = over_target
       elsif over_target < 0
         buy[holding] = -over_target
