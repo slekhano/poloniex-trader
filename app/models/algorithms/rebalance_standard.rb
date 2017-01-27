@@ -9,7 +9,7 @@ class Algorithms::RebalanceStandard
   end
 
   def run
-    frequency = 4.hours
+    frequency = 4.hours # We only have data for every 4 hours so must be 4,8,12,24,etc
     start_time = Time.utc(2016, 7, 13)
     end_time = Price.where(name: @starting_currency).maximum(:timestamp)
     start_usd = 5000.00
