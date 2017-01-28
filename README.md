@@ -14,7 +14,9 @@ rebalancing simulation in `rebalance_standard.rb`. I used Rails as the basis jus
 because it's quick and easy to load up a database with it and then run code against
 it.
 
-It stores the historical data in the `price` table of the `trader_development` database.
+It stores the historical data in the `price` table of the `trader_development` database. 
+It's currently setup to run against a local MySQL database but if you want to send
+me a PR that switches it to a local Sqlite database to make it easier to run that'd be welcome.
 
 To setup the project
 
@@ -32,7 +34,9 @@ rails runner "Algorithms::RebalanceStandard.new.run"
 ```
 
 If you change the portfolio in `portfolio.rb ` you'll need to run `fetch_all` again before
-re-running the simulation.
+re-running the simulation. In addition to adjusting the `portfolio.rb` also try adjusting
+thresholds in `rebalance_standard.rb` that affect how frequently and how
+aggressively the rebalance runs.
 
 To do an incremental update to get any new data since the `PriceUpdater` last
 ran just re-run `rails runner "PriceUpdater.fetch_all"`
