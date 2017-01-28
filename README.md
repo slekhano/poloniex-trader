@@ -24,7 +24,7 @@ It stores the historical data in the `price` table of the `trader_development` d
 It's currently setup to run against a local MySQL database but if you want to send
 me a PR that switches it to a local Sqlite database to make it easier to run that'd be welcome.
 
-## Setup
+## Instructions
 
 To setup the project I'm going to assume you already have Ruby, Bundler, and MySQL installed:
 ```bash
@@ -34,7 +34,6 @@ rake db:migrate
 ```
 
 To run the simulation
-
 ```bash
 rails runner "Scenarios.fetch_data" # fetches historical data
 rails runner "Scenarios.run"
@@ -48,17 +47,19 @@ a pull request with the changes.
 If it's been a few days and you want current data since the last time
 you ran it, just re-run `rails runner "Scenarios.fetch_data"` which does an incremental update.
 
+## Sample Output
+
 Here's the output of a simulation starting with $5000 split between Factom and MaidSafeCoin
 
 ```
 > rails runner "Algorithms::RebalanceStandard.new.run"
 Starting simulation at 2016-07-13 00:00:00 UTC
-Bitcoin holdings to start 7.525 BTC worth $5000.0 at $664.366/BTC
+Bitcoin holdings to start 7.525 BTC worth $5000.0 at $664.36/BTC
 
 Prepared the following portfolio:
 BTC_MAID 35891.88704 3.75357 BTC
 BTC_FCT 1763.39186 3.75357 BTC
-TOTAL_BTC 7.5071 = $4987.5
+TOTAL_BTC 7.5071 = $4987.50
 
 Starting simulation (T means traded and _ means nothing happened):
 T_______T_T____T______TT__TTTTTTT__T_TT_TTT_T_TTTTTTTTT__TTTTTT_TTTTT_TTT___T_TTT_TT_TT_T_T_T_T_TT_T_TT____TTTTTT____TTT___T__T_T__T______________T____TTTTTTT_TTTTT_____TTTTTTTTT_______T_T___T_TT_T
