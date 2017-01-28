@@ -1,26 +1,32 @@
-# Quickly Hacked Together Poloniex Trading Simulator
+# Poloniex Altcoin Trading Simulator
 
-This is just a quick hack job to simulate and test a simple rebalancing bot that
-starts with a portfolio evenly split among virtual currencies and then rebalances
-it every N hours. It uses historical data that it pulls from the poloniex api.
+This is just a quick hack I threw together to simulate and test a simple rebalancing bot that
+starts with a portfolio evenly split among crypto currencies and then rebalances
+it every N hours. It uses historical data that it pulls from the poloniex api and 
+then compares the results of the trading bot against simply holding the portfolio
+of virtual currenceis as well as just holding bitcoin for the same time period. The algorithm 
+also takes into account Poloniex trading fees of 0.15% when selling and 0.25% when buying. 
 
-The code is currently quite ugly as I threw it together one evening
-to test out a theory. Feel free to help clean it up and send a PR.
+## About the code
 
-This rails project just grabs all historical data
+This is a Ruby on Rails based project that just grabs all historical data
 for the virtual currencies listed in `portfolio.rb` from Poloniex
-going back to the beginning of 2016. It also includes a very basic
+going back to the beginning of 2016 (see `price_updater.rb`). It also includes a very basic
 rebalancing simulation in `rebalance.rb`. I used Rails as the basis just
 because it's quick and easy to load up a database with it and then run code against
 it.
+
+The code is currently quite ugly as I threw it together one evening
+to see if rebalancing a portfolio of crypto currencies outperforms bitcoin itself. My Ruby is
+ also pretty rusty. Feel free to help clean it up and send a pull request on github.
 
 It stores the historical data in the `price` table of the `trader_development` database. 
 It's currently setup to run against a local MySQL database but if you want to send
 me a PR that switches it to a local Sqlite database to make it easier to run that'd be welcome.
 
-To setup the project (assuming you already have Ruby and MySQL installed). Again send a PR to 
-improve these setup instructions.
+## Setup
 
+To setup the project I'm going to assume you already have Ruby, Bundler, and MySQL installed:
 ```bash
 bundle install
 rake db:create
@@ -34,13 +40,13 @@ rails runner "Scenarios.fetch_data" # fetches historical data
 rails runner "Scenarios.run"
 ```
 
-If you change the portfolio in `portfolio.rb ` you'll need to run `fetch_all` again before
+If you change the portfolio in `portfolio.rb ` you'll need to run `fetch_data` again before
 re-running the simulation. In addition to adjusting the `portfolio.rb` also try adjusting
-thresholds in `rebalance_standard.rb` that affect how frequently and how
-aggressively the rebalance runs.
+thresholds in `rebalance.rb` that affect how aggressively the rebalance runs. If your tweaks improve the performance of `rebalance.rb` send
+a pull request with the changes.
 
-To do an incremental update to get any new data since the `PriceUpdater` last
-ran just re-run `rails runner "PriceUpdater.fetch_all"`
+If it's been a few days and you want current data since the last time
+you ran it, just re-run `rails runner "Scenarios.fetch_data"` which does an incremental update.
 
 Here's the output of a simulation starting with $5000 split between Factom and MaidSafeCoin
 
