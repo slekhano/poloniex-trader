@@ -2,7 +2,10 @@ class PriceUpdater
 
   def self.fetch_all
     # See all currencies https://poloniex.com/public?command=returnTicker
-    Portfolio.currencies_to_track.each do |name|
+    currencies = Portfolio.currencies_to_track
+    # We also need to track the reference currency
+    currencies = currencies + [Portfolio.reference_currency] unless currencies.include? Portfolio.reference_currency
+    currencies.each do |name|
       fetch_and_update(name)
     end
   end

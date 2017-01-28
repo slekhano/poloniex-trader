@@ -8,9 +8,9 @@ The code is currently quite ugly as I threw it together one evening
 to test out a theory. Feel free to help clean it up and send a PR.
 
 This rails project just grabs all historical data
-for the virtual currencies listed in `price_updater.rb` from Poloniex
+for the virtual currencies listed in `portfolio.rb` from Poloniex
 going back to the beginning of 2016. It also includes a very basic
-rebalancing simulation in `rebalance_standard.rb`. I used Rails as the basis just
+rebalancing simulation in `rebalance.rb`. I used Rails as the basis just
 because it's quick and easy to load up a database with it and then run code against
 it.
 
@@ -18,7 +18,8 @@ It stores the historical data in the `price` table of the `trader_development` d
 It's currently setup to run against a local MySQL database but if you want to send
 me a PR that switches it to a local Sqlite database to make it easier to run that'd be welcome.
 
-To setup the project
+To setup the project (assuming you already have Ruby and MySQL installed). Again send a PR to 
+improve these setup instructions.
 
 ```bash
 bundle install
@@ -29,8 +30,8 @@ rake db:migrate
 To run the simulation
 
 ```bash
-rails runner "PriceUpdater.fetch_all" # fetches historical data
-rails runner "Algorithms::RebalanceStandard.new.run"
+rails runner "Scenarios.fetch_data" # fetches historical data
+rails runner "Scenarios.run"
 ```
 
 If you change the portfolio in `portfolio.rb ` you'll need to run `fetch_all` again before
