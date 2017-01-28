@@ -11,11 +11,11 @@ class Scenarios
     # First let's just hold bitcoin and see how that does
     returns["Hold Bitcoin"] = simulator.run_holding_btc
 
-    # Hold it
-    hold = Algorithms::Hold.new
-    returns["Hold Portolio"] = simulator.run(hold)
+    # Hold the portfolio from Portfolio.currencies_to_track and don't trade
+    buy_and_hold = Algorithms::Hold.new
+    returns["Hold Portolio"] = simulator.run(buy_and_hold)
 
-    # Run the rebalance algorithm
+    # Run the rebalance algorithm rebalancing the portfolio every 4 hours
     rebalance = Algorithms::Rebalance.new
     returns["Rebalance Portfolio"] = simulator.run(rebalance)
 

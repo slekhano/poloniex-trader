@@ -2,7 +2,7 @@
 
 This is just a quick hack I threw together to simulate and test a simple rebalancing bot that
 starts with a portfolio evenly split among crypto currencies and then rebalances
-it every N hours. It uses historical data that it pulls from the poloniex api and 
+it every 4 hours. It uses historical data that it pulls from the poloniex api and 
 then compares the results of the trading bot against simply holding the portfolio
 of virtual currenceis as well as just holding bitcoin for the same time period. The algorithm 
 also takes into account Poloniex trading fees of 0.15% when selling and 0.25% when buying. 
